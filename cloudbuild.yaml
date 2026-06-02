@@ -1,0 +1,50 @@
+steps:
+  # 1. Build the Docker image
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'build'
+      - '-t'
+      - 'asia-south1-docker.pkg.dev/adk-mini-project/quantamental/pipeline:latest'
+      - '.'
+
+  # 2. Push to Artifact Registry
+  - name: 'gcr.io/cloud-builders/docker'
+    args:
+      - 'push'
+      - 'asia-south1-docker.pkg.dev/adk-mini-project/quantamental/pipeline:latest'
+
+  # 3. Clean up old untagged images to stay under 500 MB free tier
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    entrypoint: 'bash'
+    args:
+      - '-c'
+      - |
+        echo "Cleaning up old untagged images..."
+        gcloud artifacts docker images list-tags \
+          asia-south1-docker.pkg.dev/adk-mini-project/quantamental/pipeline \
+          --filter="NOT tags:latest" \
+          --format="get(digest)" | while read digest; do
+            if [ -n "$digest" ]; then
+              echo "Deleting: $digest"
+              gcloud artifacts docker images delete \
+                asia-south1-docker.pkg.dev/adk-mini-project/quantamental/pipeline@$digest \
+                --quiet --delete-tags 2>/dev/null || true
+            fi
+        done
+        echo "Cleanup complete."
+
+  # 4. Update the Cloud Run Job with the new image
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+    args:
+      - 'gcloud'
+      - 'run'
+      - 'jobs'
+      - 'update'
+      - 'quantamental-daily'
+      - '--image'
+      - 'asia-south1-docker.pkg.dev/adk-mini-project/quantamental/pipeline:latest'
+      - '--region'
+      - 'asia-south1'
+
+options:
+  logging: CLOUD_LOGGING_ONLY
