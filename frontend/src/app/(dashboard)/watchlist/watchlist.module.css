@@ -1,0 +1,200 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+
+.titleArea h1 {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.titleArea p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 768px) {
+  .layout {
+    flex-direction: column;
+  }
+}
+
+.sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+@media (max-width: 768px) {
+  .sidebar {
+    width: 100%;
+  }
+}
+
+.sidebarHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sidebarHeader h3 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.createBox {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  background: var(--bg-tertiary);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.createActions {
+  display: flex;
+  gap: 8px;
+}
+
+.listContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.listItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.listItem:hover {
+  background: var(--bg-tertiary);
+}
+
+.activeList {
+  background: var(--accent-blue-dim);
+  border-color: rgba(37, 99, 235, 0.2);
+}
+
+.activeList .listName span {
+  color: var(--accent-blue);
+  font-weight: 600;
+}
+
+.listName {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.listActions {
+  display: flex;
+  gap: 4px;
+}
+
+.editBox {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.editBox input {
+  padding: 4px 8px;
+  height: auto;
+  font-size: 0.85rem;
+}
+
+.emptyText {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  text-align: center;
+  padding: 16px 0;
+}
+
+.mainContent {
+  flex-grow: 1;
+  padding: 0;
+  overflow: hidden;
+  min-height: 400px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.symbolLink {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  gap: 2px;
+}
+
+.symbolLink strong {
+  color: var(--text-primary);
+  transition: color 0.2s ease;
+}
+
+.symbolLink:hover strong {
+  color: var(--accent-blue);
+}
+
+.stockName {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loaderArea, .emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 24px;
+  text-align: center;
+  gap: 12px;
+  height: 100%;
+}
+
+.loaderArea p, .emptyState p {
+  color: var(--text-secondary);
+}
+
+.emptyState h2 {
+  font-size: 1.2rem;
+  color: var(--text-primary);
+  margin-top: 8px;
+}

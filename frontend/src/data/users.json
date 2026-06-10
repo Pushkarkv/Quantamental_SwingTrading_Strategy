@@ -1,0 +1,23 @@
+[
+  {
+    "id": "1",
+    "username": "priyanshu",
+    "password": "$2b$10$qtmIMHshMF6uugRs49HHneWubEUZgA2dJM8SdIVL2NpSwV.AZP2oW",
+    "name": "Priyanshu Verma",
+    "role": "admin"
+  },
+  {
+    "id": "2",
+    "username": "demo",
+    "password": "$2b$10$CZiLtMngm6KJBdF0ZT0oPufwgU.SFL.TcjKhGgSs/ppu9Us5lZJDm",
+    "name": "Demo User",
+    "role": "demo"
+  },
+  {
+    "id": "3",
+    "username": "pushkar",
+    "password": "$2b$10$Fuv4YbS5pRhbSsvHTQyyleALHYUTUX2QOid9SZIebza3dzdzw5aLa",
+    "name": "Pushkar",
+    "role": "user"
+  }
+]
