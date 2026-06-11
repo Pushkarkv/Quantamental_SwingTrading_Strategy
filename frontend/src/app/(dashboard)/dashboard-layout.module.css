@@ -1,0 +1,21 @@
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main {
+  margin-left: 240px;
+  margin-top: 56px;
+  padding: 24px;
+  width: calc(100% - 240px);
+  min-height: calc(100vh - 56px);
+  transition: margin-left 0.25s ease, width 0.25s ease;
+}
+
+@media (max-width: 768px) {
+  .main {
+    margin-left: 64px;
+    width: calc(100% - 64px);
+    padding: 16px;
+  }
+}

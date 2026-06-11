@@ -1,0 +1,11 @@
+notebooks/
+data_splits/
+saved_models/
+service-account/
+.env
+*.ipynb
+*.csv
+__pycache__/
+.git/
+.gitignore
+*.md

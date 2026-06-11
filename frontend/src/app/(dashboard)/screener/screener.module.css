@@ -1,0 +1,151 @@
+.page {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.titleArea h1 {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  letter-spacing: -0.02em;
+}
+
+.titleArea p {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  margin-top: 4px;
+}
+
+.presetButtons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.layout {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+/* Sidebar */
+.filterSidebar {
+  width: 280px;
+  flex-shrink: 0;
+  transition: all 0.3s ease;
+}
+
+.filterSidebar.hide {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+.filterTitle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 1.1rem;
+  margin: 0 0 16px 0;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.filterForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fieldGroup label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Results Area */
+.resultsArea {
+  flex: 1;
+  min-width: 0; /* Prevents overflow */
+}
+
+.tableCard {
+  padding: 0;
+  overflow: hidden;
+}
+
+.resultsHeader {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.resultsHeader h2 {
+  font-size: 1rem;
+  margin: 0;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  min-height: 300px;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+}
+
+.sortable:hover {
+  color: var(--accent-blue) !important;
+}
+
+.symbolLink {
+  color: var(--text-primary);
+  text-decoration: none;
+}
+
+.symbolLink:hover {
+  color: var(--accent-blue);
+}
+
+.loadingCell {
+  text-align: center;
+  padding: 48px !important;
+}
+
+.emptyCell {
+  text-align: center;
+  padding: 48px !important;
+  color: var(--text-muted);
+}
+
+@media (max-width: 900px) {
+  .layout {
+    flex-direction: column;
+  }
+  
+  .filterSidebar {
+    width: 100%;
+  }
+  
+  .filterSidebar.hide {
+    height: 0;
+    width: 100%;
+  }
+}
