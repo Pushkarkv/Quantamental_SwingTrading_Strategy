@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "username": "priyanshu",
+    "password": "$2b$10$RF.sIjQ1FPDyVuXHQy0W6OFubtNRy3Jaxxx2vPsqR4HSTpT6g319a",
+    "name": "Priyanshu Verma",
+    "role": "admin"
+  },
+  {
+    "id": "2",
+    "username": "demo",
+    "password": "$2b$10$CZiLtMngm6KJBdF0ZT0oPufwgU.SFL.TcjKhGgSs/ppu9Us5lZJDm",
+    "name": "Demo User",
+    "role": "demo"
+  }
+]

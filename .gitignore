@@ -42,10 +42,10 @@ env.bak/
 venv.bak/
 
 # ML / Data
-data/
-data_splits/
-data_samples/
-saved_models/
+/data/
+/data_splits/
+/data_samples/
+/saved_models/
 *.csv
 *.xlsx
 *.parquet
