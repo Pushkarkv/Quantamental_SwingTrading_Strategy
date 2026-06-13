@@ -1,11 +1,21 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Activity, CheckCircle2, Clock, Database, Server, Settings } from 'lucide-react';
+import { Activity, CheckCircle2, Clock, Database, Server, Settings, FileText, Check, X } from 'lucide-react';
 import styles from './monitor.module.css';
+
+interface ExecutionLog {
+  script_name: string;
+  status: string;
+  duration_seconds: number;
+  error_message: string | null;
+  run_timestamp: string;
+}
 
 export default function ModelMonitorPage() {
   const [lastRun, setLastRun] = useState<string>('Loading...');
+  const [logs, setLogs] = useState<ExecutionLog[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(true);
 
   useEffect(() => {
     fetch('/api/stocks?limit=1')
@@ -14,6 +24,14 @@ export default function ModelMonitorPage() {
         if (data?.stats?.lastRun) setLastRun(data.stats.lastRun);
       })
       .catch(err => console.error('Failed to fetch last run', err));
+
+    fetch('/api/monitor')
+      .then(res => res.json())
+      .then(data => {
+        if (data?.logs) setLogs(data.logs);
+      })
+      .catch(err => console.error('Failed to fetch logs', err))
+      .finally(() => setLoadingLogs(false));
   }, []);
   return (
     <div className={`fade-in ${styles.page}`}>
@@ -68,35 +86,58 @@ export default function ModelMonitorPage() {
           </div>
         </div>
 
-        {/* Model Metrics Placeholder */}
+        {/* Execution Logs */}
         <div className={styles.metricsCol}>
           <div className={`card ${styles.metricCard}`}>
             <div className={styles.cardHeader}>
-              <h3>Model Performance (Validation Set)</h3>
-              <span className="text-secondary"><Clock size={14} /> Retrained 2 days ago</span>
+              <h3>Execution Logs</h3>
+              <span className="text-secondary"><FileText size={14} /> Latest Pipeline Run</span>
             </div>
             
-            <div className={styles.metricsGrid}>
-              <div className={styles.metricItem}>
-                <p className={styles.metricLabel}>MAE (Avg Price)</p>
-                <p className="mono text-primary" style={{fontSize: '1.5rem', fontWeight: 700}}>₹42.15</p>
-              </div>
-              <div className={styles.metricItem}>
-                <p className={styles.metricLabel}>RMSE (Avg Price)</p>
-                <p className="mono text-primary" style={{fontSize: '1.5rem', fontWeight: 700}}>₹61.80</p>
-              </div>
-              <div className={styles.metricItem}>
-                <p className={styles.metricLabel}>Hit Ratio (Direction)</p>
-                <p className="mono text-green" style={{fontSize: '1.5rem', fontWeight: 700}}>68.4%</p>
-              </div>
-              <div className={styles.metricItem}>
-                <p className={styles.metricLabel}>R² Score</p>
-                <p className="mono text-blue" style={{fontSize: '1.5rem', fontWeight: 700}}>0.89</p>
-              </div>
+            <div className={styles.logTableContainer}>
+              {loadingLogs ? (
+                <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>Loading logs...</p>
+              ) : logs.length > 0 ? (
+                <table className={styles.logTable}>
+                  <thead>
+                    <tr>
+                      <th>Script</th>
+                      <th>Status</th>
+                      <th>Duration (s)</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {logs.map((log, index) => (
+                      <tr key={index} className={styles.logRow}>
+                        <td>
+                          <span className={styles.scriptName}>{log.script_name}</span>
+                          {log.status !== 'SUCCESS' && log.error_message && (
+                            <div style={{ color: 'var(--accent-red)', fontSize: '0.8rem', marginTop: '4px' }}>
+                              {log.error_message}
+                            </div>
+                          )}
+                        </td>
+                        <td>
+                          {log.status === 'SUCCESS' ? (
+                            <span className={styles.statusSuccess}><Check size={14} /> SUCCESS</span>
+                          ) : log.status === 'FAILED' ? (
+                            <span className={styles.statusFailed}><X size={14} /> FAILED</span>
+                          ) : (
+                            <span>{log.status}</span>
+                          )}
+                        </td>
+                        <td className="mono">{log.duration_seconds?.toFixed(2)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              ) : (
+                <p style={{ textAlign: 'center', padding: '20px', color: 'var(--text-secondary)' }}>No logs available.</p>
+              )}
             </div>
 
             <div className={styles.infoBox}>
-              <p><strong>Note:</strong> Performance metrics are fetched from the latest cross-validation run on the historical dataset. The model correctly identifies directional movement 68.4% of the time on out-of-sample data.</p>
+              <p><strong>Note:</strong> The table displays execution logs from the BigQuery table <code>adk-mini-project.pipeline.execution_log</code> corresponding to the latest pipeline run.</p>
             </div>
           </div>
         </div>
