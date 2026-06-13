@@ -20,6 +20,7 @@ An end-to-end algorithmic and discretionary trading ecosystem that fuses quantit
 
 ---
 
+<a id="project-overview"></a>
 ## 🎯 Project Overview
 
 This repository houses two primary systems:
@@ -28,6 +29,7 @@ This repository houses two primary systems:
 
 ---
 
+<a id="architecture--tech-stack"></a>
 ## ⚙️ Architecture & Tech Stack
 
 ### Data Pipeline & Machine Learning
@@ -49,6 +51,7 @@ This repository houses two primary systems:
 
 ---
 
+<a id="data-collection--ml-pipeline"></a>
 ## 📊 Data Collection & ML Pipeline
 
 The data ingestion pipeline is managed by `orchestrator.py`, which sequences the following scripts. The orchestrator automatically detects the day of the week to execute the correct profile (daily predictions vs. weekly model retraining).
@@ -67,6 +70,7 @@ All pipeline executions, including durations, success/failure statuses, and erro
 
 ---
 
+<a id="frontend-terminal"></a>
 ## 💻 Frontend Terminal
 
 The Next.js frontend (`/frontend`) acts as the user interface for the trading strategy. 
@@ -78,6 +82,7 @@ The Next.js frontend (`/frontend`) acts as the user interface for the trading st
 
 ---
 
+<a id="cloud-deployment-gcp--vercel"></a>
 ## ☁️ Cloud Deployment (GCP & Vercel)
 
 The project leverages a fully serverless cloud architecture.
@@ -103,6 +108,7 @@ The `frontend` directory is deployed to Vercel.
 
 ---
 
+<a id="setup--installation"></a>
 ## 🛠️ Setup & Installation
 
 **⚠️ Note on Proprietary Features:** 
