@@ -43,7 +43,7 @@ STANDALONE_URL = "https://www.screener.in/company/{symbol}/"
 PEER_API_URL = "https://www.screener.in/api/company/{warehouse_id}/peers/"
 
 FLUSH_INTERVAL = 50
-REQUEST_DELAY = 2
+REQUEST_DELAY = 0.5
 MAX_RETRIES = 3
 RETRY_BACKOFF = [2, 5, 10]
 REQUEST_HEADERS = {

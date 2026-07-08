@@ -41,7 +41,7 @@ def main():
     bq_client = bigquery.Client(project=GCP_PROJECT_ID)
 
     master_query = """
-    SELECT * FROM `adk-mini-project.technicals.train_data`;
+    SELECT * FROM `adk-mini-project.technicals.train_data_lagged_ranking_features`;
     """
 
     df = bq_client.query(master_query).to_dataframe() 

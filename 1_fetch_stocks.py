@@ -1,7 +1,9 @@
 import os
 import pandas as pd
 import requests
+import zipfile
 import io
+import datetime
 from dotenv import load_dotenv
 
 # 1. Load environment variables
@@ -12,15 +14,13 @@ BQ_DATASET_TABLE = "stocks.all_listed_stocks"
 
 if not GCP_PROJECT_ID or not BQ_DATASET_TABLE:
     raise ValueError("Missing GCP project or table details in .env file.")
-# Note: pandas-gbq automatically looks for GOOGLE_APPLICATION_CREDENTIALS in your environment.
 
 def fetch_nse_data():
     """Fetches and cleans pure NSE stock data."""
     url = "https://archives.nseindia.com/content/equities/EQUITY_L.csv"
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.5'
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
     }
     
     try:
@@ -40,9 +40,7 @@ def fetch_nse_data():
             'DATE OF LISTING': 'listing_date'
         })
         
-        # Keep ONLY rows where the ISIN indicates a pure corporate stock (INE, IN9)
         nse_df = nse_df[nse_df['isin'].astype(str).str.startswith(('INE', 'IN9'))]
-        
         nse_df['listing_date'] = pd.to_datetime(nse_df['listing_date'], format='%d-%b-%Y', errors='coerce').dt.date
         nse_df['is_on_nse'] = True
         return nse_df
@@ -53,9 +51,8 @@ def fetch_nse_data():
 def fetch_bse_data():
     """Fetches and cleans pure BSE stock data."""
     url = "https://api.bseindia.com/BseIndiaAPI/api/ListofScripData/w?Group=&Scripcode=&industry=&segment=Equity&status=Active"
-    
     bse_headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
         'Accept': 'application/json, text/plain, */*',
         'Origin': 'https://www.bseindia.com',
         'Referer': 'https://www.bseindia.com/',
@@ -79,7 +76,6 @@ def fetch_bse_data():
             return pd.DataFrame()
 
         bse_df = df.copy()
-        
         if 'group' in bse_df.columns:
             invalid_groups = ['E', 'G', 'F', 'FC', 'IF', 'IT', 'MF']
             bse_df = bse_df[~bse_df['group'].isin(invalid_groups)]
@@ -90,9 +86,7 @@ def fetch_bse_data():
             'isin_number': 'isin'
         })
         
-        # Keep ONLY pure stocks
         bse_df = bse_df[bse_df['isin'].astype(str).str.startswith(('INE', 'IN9'))]
-        
         bse_df = bse_df[['bse_symbol', 'company_name_bse', 'isin']].copy()
         bse_df['is_on_bse'] = True
         return bse_df
@@ -100,6 +94,67 @@ def fetch_bse_data():
     except Exception as e:
         print(f"Warning: Failed to fetch BSE data. Error: {e}")
         return pd.DataFrame()
+
+def fetch_official_nse_market_cap():
+    """
+    Downloads the PR Zip file from NSE for the most recent trading day,
+    extracts the MCAP file, and returns a DataFrame of Symbol and Market Cap.
+    """
+    print("Searching for the most recent official NSE PR archive...")
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+    }
+    
+    # Loop back up to 5 days to handle weekends/holidays seamlessly
+    for i in range(5):
+        target_date = datetime.datetime.now() - datetime.timedelta(days=i)
+        date_str_short = target_date.strftime("%d%m%y")
+        
+        zip_url = f"https://archives.nseindia.com/archives/equities/bhavcopy/pr/PR{date_str_short}.zip"
+        
+        try:
+            response = requests.get(zip_url, headers=headers, timeout=10)
+            if response.status_code == 200:
+                print(f"-> Successfully located PR file for {target_date.strftime('%d-%b-%Y')}")
+                
+                # Extract the zip entirely in memory
+                with zipfile.ZipFile(io.BytesIO(response.content)) as z:
+                    mcap_filename = next((name for name in z.namelist() if name.lower().startswith('mcap') and name.lower().endswith('.csv')), None)
+                    
+                    if not mcap_filename:
+                        print("-> MCAP file not found in the zip. Trying previous day...")
+                        continue
+                        
+                    print(f"-> Extracting internal file: {mcap_filename}")
+                    
+                    with z.open(mcap_filename) as f:
+                        mcap_df = pd.read_csv(f)
+                        mcap_df.columns = mcap_df.columns.str.strip().str.lower()
+                        
+                        # Dynamically find the market cap column to future-proof against NSE column renames
+                        mcap_col = next((col for col in mcap_df.columns if 'market cap' in col or 'mcap' in col), None)
+                        
+                        if 'symbol' in mcap_df.columns and mcap_col:
+                            mcap_df = mcap_df.rename(columns={'symbol': 'nse_symbol', mcap_col: 'market_cap_raw'})
+                            # Convert raw INR to Crores (1 Crore = 10,000,000 INR)
+                            mcap_df['market_cap_cr'] = mcap_df['market_cap_raw'] / 10000000
+                            
+                            # Keep only unique symbols (in case of multiple series like EQ, BE, etc.)
+                            mcap_df = mcap_df.drop_duplicates(subset=['nse_symbol'])
+                            return mcap_df[['nse_symbol', 'market_cap_cr']].copy()
+                        else:
+                            print("-> Warning: Expected columns not found in MCAP file.")
+                            return pd.DataFrame()
+            else:
+                continue
+                
+        except Exception as e:
+            print(f"Error checking {date_str_short}: {e}")
+            continue
+            
+    print("Failed to find a valid PR Zip file in the last 5 days.")
+    return pd.DataFrame()
 
 # --- MAIN EXECUTION ---
 if __name__ == "__main__":
@@ -122,21 +177,35 @@ if __name__ == "__main__":
 
     merged_df['is_on_nse'] = True 
     merged_df['is_on_bse'] = merged_df['is_on_bse'].fillna(False)
-
-    print(f"Total NSE-focused stocks prepared: {len(merged_df)}")
     
-    # Upload to Google BigQuery
+    print(f"Total NSE-focused stocks before filtering: {len(merged_df)}")
+
+    # --- OFFICIAL MARKET CAP FILTERING ---
+    market_cap_df = fetch_official_nse_market_cap()
+    
+    if not market_cap_df.empty:
+        merged_df = pd.merge(merged_df, market_cap_df, on='nse_symbol', how='left')
+        merged_df['market_cap_cr'] = merged_df['market_cap_cr'].fillna(0)
+        
+        # Apply the >= 1000 Cr Filter
+        merged_df = merged_df[merged_df['market_cap_cr'] >= 1000].copy()
+        print(f"Total stocks remaining AFTER applying >= 1000 Cr Market Cap filter: {len(merged_df)}")
+    else:
+        print("Market cap data could not be joined. Uploading unfiltered data.")
+        merged_df['market_cap_cr'] = 0.0
+
+    # --- UPLOAD TO BIGQUERY ---
     print(f"\nPushing data to BigQuery table: {BQ_DATASET_TABLE}...")
     
-    # Explicitly define the BigQuery schema to guarantee the DATE type
     bq_schema = [
         {'name': 'nse_symbol', 'type': 'STRING'},
         {'name': 'company_name', 'type': 'STRING'},
         {'name': 'isin', 'type': 'STRING'},
-        {'name': 'listing_date', 'type': 'DATE'},  # Enforces strict DATE format
+        {'name': 'listing_date', 'type': 'DATE'},  
         {'name': 'bse_symbol', 'type': 'STRING'},
         {'name': 'is_on_nse', 'type': 'BOOLEAN'},
-        {'name': 'is_on_bse', 'type': 'BOOLEAN'}
+        {'name': 'is_on_bse', 'type': 'BOOLEAN'},
+        {'name': 'market_cap_cr', 'type': 'FLOAT64'} 
     ]
     
     try:
@@ -146,6 +215,6 @@ if __name__ == "__main__":
             if_exists='replace',
             table_schema=bq_schema
         )
-        print("Success! The BigQuery table has been fully overridden with native DATE types.")
+        print("Success! The BigQuery table has been fully overridden with native Exchange Market Cap data.")
     except Exception as e:
         print(f"BigQuery upload failed: {e}")
