@@ -115,3 +115,7 @@ The `frontend` directory is deployed to Vercel.
 We have made the training methodology public with redacted features, so you will only be able to clone those structural files (e.g., `6_model_train_public.py`). 
 
 The full local backend and frontend setup instructions have been removed as this is a private, active algorithmic trading strategy.
+
+
+## Project status
+This project is under active development.
