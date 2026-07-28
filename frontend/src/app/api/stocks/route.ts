@@ -35,7 +35,7 @@ export async function GET(request: Request) {
 
     // 2. Get actual last pipeline run date from execution_log (always accurate)
     const lastRunQuery = `
-      SELECT MAX(run_date) as last_run_date
+      SELECT CAST(MAX(run_date) AS STRING) as last_run_date
       FROM \`adk-mini-project.pipeline.execution_log\`
       WHERE status = 'SUCCESS'
     `;
@@ -59,13 +59,23 @@ export async function GET(request: Request) {
     // Sort by predicted average return DESC
     filtered.sort((a: any, b: any) => b.predicted_avg_pct - a.predicted_avg_pct);
 
+    // Parse the last run date safely
+    let lastRunDisplay = 'N/A';
+    if (lastRunResult.length > 0 && lastRunResult[0].last_run_date) {
+      const dateStr = String(lastRunResult[0].last_run_date);
+      const parts = dateStr.split('-');
+      if (parts.length === 3) {
+        lastRunDisplay = `${parseInt(parts[1])}/${parseInt(parts[2])}/${parts[0]}`;
+      } else {
+        lastRunDisplay = dateStr;
+      }
+    }
+
     const stats = {
       total,
       passing,
       avgUpside: passing > 0 ? totalUpside / passing : 0,
-      lastRun: lastRunResult.length > 0 && lastRunResult[0].last_run_date
-        ? new Date(lastRunResult[0].last_run_date as string).toLocaleDateString()
-        : 'N/A'
+      lastRun: lastRunDisplay
     };
 
     return NextResponse.json({
