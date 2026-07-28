@@ -33,7 +33,15 @@ export async function GET(request: Request) {
 
     const predictions = await queryBigQuery(latestPredictionsQuery);
 
-    // 2. Calculate stats
+    // 2. Get actual last pipeline run date from execution_log (always accurate)
+    const lastRunQuery = `
+      SELECT MAX(run_date) as last_run_date
+      FROM \`adk-mini-project.pipeline.execution_log\`
+      WHERE status = 'SUCCESS'
+    `;
+    const lastRunResult = await queryBigQuery(lastRunQuery);
+
+    // 3. Calculate stats
     const total = predictions.length;
     let passing = 0;
     let totalUpside = 0;
@@ -55,7 +63,9 @@ export async function GET(request: Request) {
       total,
       passing,
       avgUpside: passing > 0 ? totalUpside / passing : 0,
-      lastRun: predictions.length > 0 ? new Date(predictions[0].prediction_date as string).toLocaleDateString() : 'N/A'
+      lastRun: lastRunResult.length > 0 && lastRunResult[0].last_run_date
+        ? new Date(lastRunResult[0].last_run_date as string).toLocaleDateString()
+        : 'N/A'
     };
 
     return NextResponse.json({
