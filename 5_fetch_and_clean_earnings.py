@@ -42,8 +42,10 @@ def ensure_bq_dataset_exists(client):
     dataset = bigquery.Dataset(dataset_id)
     dataset.location = "asia-south1"
     dataset = client.create_dataset(dataset, exists_ok=True)
+    # CRITICAL: Clear BOTH expiration settings to prevent auto-deletion of tables/views
+    dataset.default_table_expiration_ms = None
     dataset.default_partition_expiration_ms = None
-    client.update_dataset(dataset, ["default_partition_expiration_ms"])
+    client.update_dataset(dataset, ["default_table_expiration_ms", "default_partition_expiration_ms"])
 
 def push_to_bigquery(raw_df, cleaned_df):
     print("Pushing data to BigQuery...")

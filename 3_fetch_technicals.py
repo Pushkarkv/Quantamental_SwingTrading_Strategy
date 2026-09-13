@@ -42,8 +42,12 @@ def ensure_tables_exist(client):
     dataset = client.create_dataset(dataset_ref, exists_ok=True)
     
     # Force update the dataset to ensure no hidden 60-day default exists
+    # CRITICAL: Must clear BOTH expiration settings.
+    #   - default_table_expiration_ms: affects ALL tables and views (this was killing our views!)
+    #   - default_partition_expiration_ms: affects partitioned table partitions
+    dataset.default_table_expiration_ms = None
     dataset.default_partition_expiration_ms = None
-    client.update_dataset(dataset, ["default_partition_expiration_ms"])
+    client.update_dataset(dataset, ["default_table_expiration_ms", "default_partition_expiration_ms"])
 
     # 2. Data Table (NOW PARTITIONED AND CLUSTERED WITH EXPIRATION DISABLED)
     client.query(f"""
